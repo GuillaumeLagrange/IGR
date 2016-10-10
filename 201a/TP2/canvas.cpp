@@ -9,7 +9,7 @@ Canvas::Canvas(QWidget * parent) : QWidget(parent)
         pen = new QPen();
         drawnShapes = new QList<DrawnShape>();
         mode = line;
-        painterPath = new QPainterPath();
+        currentPainterPath = new QPainterPath();
     }
 
 
@@ -30,25 +30,64 @@ void Canvas::paintEvent(QPaintEvent* e)
     {
         switch(mode)
         {
-        case line :
-            painter.drawLine(*start, *currentPos);
-            break;
-        case rectangle :
-            painter.drawRect(*(new QRect(*start, *currentPos)));
-            break;
-        case ellipse :
-            painter.drawEllipse(*(new QRect(*start, *currentPos)));
-            break;
+            case line :
+                painter.drawLine(*start, *currentPos);
+                break;
+            case rectangle :
+                painter.drawRect(*(new QRect(*start, *currentPos)));
+                break;
+            case ellipse :
+                painter.drawEllipse(*(new QRect(*start, *currentPos)));
+                break;
+            case polygon :
+                painter.drawPath(*currentPainterPath);
+                painter.drawLine(*start, *currentPos);
         }
     }
 }
 
 void Canvas::mousePressEvent(QMouseEvent * e)
 {
-    setMouseTracking(true);
-    *start = e->pos();
-    *currentPos = e->pos();
-    update();
+    if (mode == polygon)
+    {
+      switch (e->button())
+        {
+            case Qt::LeftButton:
+                if (!hasMouseTracking())
+                {
+                    *start = e->pos();
+                    *currentPos = e->pos();
+                    currentPainterPath->moveTo(*start);
+                    currentPainterPath->lineTo(*start);
+                    setMouseTracking(true);
+                }
+                else
+                {
+                    currentPainterPath->lineTo(*currentPos);
+                    currentPainterPath->moveTo(*currentPos);
+                    *start=*currentPos;
+                }
+                break;
+            default :
+                if (!currentPainterPath->isEmpty())
+                {
+                    currentPainterPath->lineTo(*currentPos);
+                    currentPainterPath->connectPath(*currentPainterPath);
+                    drawnShapes->append(*(new DrawnShape(currentPainterPath, pen)));
+                    currentPainterPath = new QPainterPath();
+                    setMouseTracking(false);
+                }
+                break;
+        }
+      update();
+    }
+    else
+    {
+        setMouseTracking(true);
+        *start = e->pos();
+        *currentPos = e->pos();
+        update();
+    }
 }
 
 void Canvas::mouseMoveEvent(QMouseEvent * e)
@@ -62,18 +101,25 @@ void Canvas::mouseMoveEvent(QMouseEvent * e)
 
 void Canvas::mouseReleaseEvent(QMouseEvent * e)
 {
-    setMouseTracking(false);
     switch(mode)
     {
-        case line : drawnShapes->append(*(new DrawnShape(new QLine(*start,*currentPos),
-                               pen)));
-                    break;
-        case rectangle : drawnShapes->append(*(new DrawnShape(new QRect(*start, *currentPos),
-                                  pen, mode)));
-                    break;
-        case ellipse : drawnShapes->append(*(new DrawnShape(new QRect(*start, *currentPos),
-                                pen, mode)));
-                    break;
+        case line :
+            drawnShapes->append(*(new DrawnShape(new QLine(*start,*currentPos),
+                                                 pen)));
+            setMouseTracking(false);
+            break;
+        case rectangle :
+            drawnShapes->append(*(new DrawnShape(new QRect(*start, *currentPos),
+                                                 pen, mode)));
+            setMouseTracking(false);
+            break;
+        case ellipse :
+            drawnShapes->append(*(new DrawnShape(new QRect(*start, *currentPos),
+                                                 pen, mode)));
+            setMouseTracking(false);
+            break;
+        case polygon :
+            break;
     }
 
     update();
@@ -126,4 +172,6 @@ void Canvas::switchMode(QAction *a)
         mode = rectangle;
     if (a->text() == tr("Ellipse"))
         mode = ellipse;
+    if (a->text() == tr("Polygon"))
+        mode = polygon;
 }

@@ -44,7 +44,7 @@ private:
     QPen * pen;
     QList<DrawnShape> * drawnShapes;
     Mode mode;
-    QPainterPath *painterPath;
+    QPainterPath *currentPainterPath;
 };
 
 #endif // CANVAS_H

@@ -96,6 +96,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QAction * lineModeAction = new QAction(tr("Line"), modeGroup);
     QAction * rectModeAction = new QAction(tr("Rectangle"), modeGroup);
     QAction * ellipseModeAction = new QAction(tr("Ellipse"), modeGroup);
+    QAction * polygonModeAction = new QAction(tr("Polygon"), modeGroup);
 
     QObject::connect(modeGroup, SIGNAL(triggered(QAction*)),
                      canvas, SLOT(switchMode(QAction*)));
@@ -103,6 +104,7 @@ MainWindow::MainWindow(QWidget *parent) :
     modeMenu->addAction(lineModeAction);
     modeMenu->addAction(rectModeAction);
     modeMenu->addAction(ellipseModeAction);
+    modeMenu->addAction(polygonModeAction);
 
 
 }
@@ -113,7 +115,6 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::openFile() {
-    qDebug("Open");
     QString fileName = QFileDialog::getOpenFileName(this,tr("Open file"), ":/open", tr("HTML files(*.html)"));
 
     QFile file(qPrintable(fileName));
@@ -128,7 +129,6 @@ void MainWindow::openFile() {
 }
 
 void MainWindow::saveFile() {
-    qDebug("Save");
     QString fileName = QFileDialog::getSaveFileName(this,tr("Save file"), ":/saved", tr("Text files(*.txt)"));
 
     QFile file(qPrintable(fileName));
@@ -147,7 +147,6 @@ void MainWindow::saveFile() {
 }
 
 void MainWindow::quitFile() {
-    qDebug("Quit");
 //    QApplication::sendEvent(this, new QCloseEvent());
     close();
 }

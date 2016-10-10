@@ -133,7 +133,8 @@ void MainWindow::saveFile() {
 
 void MainWindow::quitFile() {
     qDebug("Quit");
-    QApplication::sendEvent(this, new QCloseEvent());
+//    QApplication::sendEvent(this, new QCloseEvent());
+    close();
 }
 
 void MainWindow::closeEvent(QCloseEvent *e) {
@@ -143,7 +144,7 @@ void MainWindow::closeEvent(QCloseEvent *e) {
     msgBox->setStandardButtons(QMessageBox::Yes|QMessageBox::No);
     int ret = msgBox->exec();
     if (ret == QMessageBox::Yes)
-        close();
+        e->accept();
     else
         e->ignore();
 }

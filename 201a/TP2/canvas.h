@@ -42,10 +42,8 @@ private:
     QPoint * start;
     QPoint * currentPos;
     QPen * pen;
-    QList<DrawnLine> * drawnLines;
     QList<DrawnShape> * drawnShapes;
     Mode mode;
-    Mode lastDrawn;
     QPainterPath *painterPath;
 };
 

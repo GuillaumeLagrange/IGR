@@ -7,7 +7,6 @@ Canvas::Canvas(QWidget * parent) : QWidget(parent)
         start = new QPoint();
         currentPos = new QPoint();
         pen = new QPen();
-        drawnLines = new QList<DrawnLine>();
         drawnShapes = new QList<DrawnShape>();
         mode = line;
         painterPath = new QPainterPath();
@@ -20,12 +19,6 @@ void Canvas::paintEvent(QPaintEvent* e)
     QWidget::paintEvent(e);
     QPainter painter(this);
 
-    for (DrawnLine line : *drawnLines)
-    {
-        painter.setPen(line.getPen());
-        painter.drawLine(*(line.getLine()));
-    }
-
     for (DrawnShape shape : *drawnShapes)
     {
         painter.setPen(shape.getPen());
@@ -35,18 +28,23 @@ void Canvas::paintEvent(QPaintEvent* e)
     painter.setPen(*pen);
     if (hasMouseTracking())
     {
-        if (mode ==  line)
-        painter.drawLine(*start, *currentPos);
-        if (mode == rectangle)
-        painter.drawRect(*(new QRect(*start, *currentPos)));
-        if (mode == ellipse)
-        painter.drawEllipse(*(new QRect(*start, *currentPos)));
+        switch(mode)
+        {
+        case line :
+            painter.drawLine(*start, *currentPos);
+            break;
+        case rectangle :
+            painter.drawRect(*(new QRect(*start, *currentPos)));
+            break;
+        case ellipse :
+            painter.drawEllipse(*(new QRect(*start, *currentPos)));
+            break;
+        }
     }
 }
 
 void Canvas::mousePressEvent(QMouseEvent * e)
 {
-//    qDebug("MOUSE PRESSED");
     setMouseTracking(true);
     *start = e->pos();
     *currentPos = e->pos();
@@ -57,7 +55,6 @@ void Canvas::mouseMoveEvent(QMouseEvent * e)
 {
     if (hasMouseTracking())
     {
-//        qDebug("MOUSE MOVED");
         *currentPos = e->pos();
         update();
     }
@@ -65,19 +62,18 @@ void Canvas::mouseMoveEvent(QMouseEvent * e)
 
 void Canvas::mouseReleaseEvent(QMouseEvent * e)
 {
-//    qDebug("MOUSE RELEASED");
     setMouseTracking(false);
     switch(mode)
     {
-        case line : drawnLines->append(*(new DrawnLine(new QLine(*start,*currentPos),
+        case line : drawnShapes->append(*(new DrawnShape(new QLine(*start,*currentPos),
                                pen)));
-                    lastDrawn = line;
+                    break;
         case rectangle : drawnShapes->append(*(new DrawnShape(new QRect(*start, *currentPos),
                                   pen, mode)));
-                    lastDrawn = rectangle;
+                    break;
         case ellipse : drawnShapes->append(*(new DrawnShape(new QRect(*start, *currentPos),
                                 pen, mode)));
-                    lastDrawn = ellipse;
+                    break;
     }
 
     update();
@@ -85,11 +81,9 @@ void Canvas::mouseReleaseEvent(QMouseEvent * e)
 
 void Canvas::setWidth(QAction *a)
 {
-//    qDebug("Received widthGroup signal");
     if (a->text() == tr("Wide"))
     {
         pen->setWidth(5);
-//        qDebug("WIDE SET");
     }
     if (a->text() == tr("Thin"))
         pen->setWidth(1);
@@ -115,15 +109,11 @@ void Canvas::deleteLine(QAction *a)
 {
    if (a->text() == tr("Delete all"))
    {
-        drawnLines = new QList<DrawnLine>();
         drawnShapes = new QList<DrawnShape>();
    }
    if (a->text() == tr("Delete last"))
    {
-        if (lastDrawn == line)
-            drawnLines->removeLast();
-        else
-            drawnShapes->removeLast();
+        drawnShapes->removeLast();
    }
    update();
 }

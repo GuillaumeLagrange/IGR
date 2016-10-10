@@ -34,12 +34,14 @@ void Canvas::paintEvent(QPaintEvent* e)
 
     painter.setPen(*pen);
     if (hasMouseTracking())
-        switch(mode)
-        {
-            case line : painter.drawLine(*start, *currentPos);
-            case rectangle : painter.drawRect(*(new QRect(*start, *currentPos)));
-            case ellipse : painter.drawEllipse(*(new QRect(*start, *currentPos)));
-        }
+    {
+        if (mode ==  line)
+        painter.drawLine(*start, *currentPos);
+        if (mode == rectangle)
+        painter.drawRect(*(new QRect(*start, *currentPos)));
+        if (mode == ellipse)
+        painter.drawEllipse(*(new QRect(*start, *currentPos)));
+    }
 }
 
 void Canvas::mousePressEvent(QMouseEvent * e)

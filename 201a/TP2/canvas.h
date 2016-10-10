@@ -26,6 +26,7 @@ public slots:
     void setColor(QAction * a);
     void setWidth(QAction * a);
     void setStyle(QAction * a);
+    void deleteLine(QAction *a);
 
 protected:
     virtual void paintEvent(QPaintEvent*);

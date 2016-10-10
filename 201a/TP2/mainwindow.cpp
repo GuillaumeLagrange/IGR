@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMenu * fileMenu = menuBar->addMenu(tr("&File"));
     QToolBar * toolBar = this->addToolBar(tr("File"));
     QMenu * editMenu = menuBar->addMenu(tr("Edit"));
+    QMenu * deleteMenu = menuBar->addMenu(tr("Delete"));
 
     canvas = new Canvas(this);
     setCentralWidget(canvas);
@@ -45,15 +46,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     /* ACTIONS FOR BRUSH OPTIONS */
-//    QAction * thinAction = new QAction(this);
-//    QAction * wideAction = new QAction(this);
-//    QAction * blackAction = new QAction(this);
-//    QAction * blueAction = new QAction(this);
-//    QAction * solidAction = new QAction(this);
-//    QAction * dashAction = new QAction(this);
 
-
-    /* GROUP & CONNECT FOR WIDTH*/
+    /* GROUP & CONNECT FOR WIDTH */
     QActionGroup * widthGroup = new QActionGroup(this);
     QAction * wideAction = new QAction(tr("Wide"), widthGroup);
     QAction * thinAction = new QAction(tr("Thin"), widthGroup);
@@ -61,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(widthGroup, SIGNAL(triggered(QAction*)),
                 canvas, SLOT(setWidth(QAction*)));
 
-    /*GROUP & CONNECT FOR COLOR*/
+    /* GROUP & CONNECT FOR COLOR */
     QActionGroup * colorGroup = new QActionGroup(this);
     QAction * blackAction = new QAction(tr("Black"), colorGroup);
     QAction * blueAction = new QAction(tr("Blue"), colorGroup);
@@ -70,7 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
                 canvas, SLOT(setColor(QAction*)));
 
 
-    /*GROUP & CONNECT FOR STYLE*/
+    /* GROUP & CONNECT FOR STYLE */
     QActionGroup * styleGroup = new QActionGroup(this);
     QAction * solidAction = new QAction(tr("Solid"), styleGroup);
     QAction * dashAction = new QAction(tr("Dash"), styleGroup);
@@ -85,6 +79,16 @@ MainWindow::MainWindow(QWidget *parent) :
     editMenu->addAction(solidAction);
     editMenu->addAction(dashAction);
 
+    /* GROUP AND CONNECT FOR REMOVING */
+    QActionGroup * deleteGroup = new QActionGroup(this);
+    QAction * deleteLastAction = new QAction(tr("Delete last"), deleteGroup);
+    QAction * deleteAllAction = new QAction(tr("Delete all"), deleteGroup);
+
+    QObject::connect(deleteGroup, SIGNAL(triggered(QAction*)),
+                     canvas, SLOT(deleteLine(QAction*)));
+
+    deleteMenu->addAction(deleteAllAction);
+    deleteMenu->addAction(deleteLastAction);
 
 }
 

@@ -83,3 +83,12 @@ void Canvas::setStyle(QAction *a)
     if (a->text() == "Dash")
         pen->setStyle(Qt::DashLine);
 }
+
+void Canvas::deleteLine(QAction *a)
+{
+   if (a->text() == "Delete all")
+        drawnLines = new QList<DrawnLine>();
+   if (a->text() == "Delete last")
+        drawnLines->removeLast();
+   update();
+}

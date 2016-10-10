@@ -1,6 +1,7 @@
 #ifndef CANVAS_H
 #define CANVAS_H
 
+#include <QPainterPath>
 #include <QVector>
 #include <QLine>
 #include <QPoint>
@@ -12,7 +13,9 @@
 #include <QWidget>
 #include <QList>
 
-#include"drawnline.h"
+#include "drawnline.h"
+#include "drawnshape.h"
+#include "mode.h"
 
 class Canvas : public QWidget
 {
@@ -27,6 +30,7 @@ public slots:
     void setWidth(QAction * a);
     void setStyle(QAction * a);
     void deleteLine(QAction *a);
+    void switchMode(QAction* a);
 
 protected:
     virtual void paintEvent(QPaintEvent*);
@@ -39,6 +43,10 @@ private:
     QPoint * currentPos;
     QPen * pen;
     QList<DrawnLine> * drawnLines;
+    QList<DrawnShape> * drawnShapes;
+    Mode mode;
+    Mode lastDrawn;
+    QPainterPath *painterPath;
 };
 
 #endif // CANVAS_H

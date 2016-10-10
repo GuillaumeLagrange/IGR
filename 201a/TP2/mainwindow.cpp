@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QToolBar * toolBar = this->addToolBar(tr("File"));
     QMenu * editMenu = menuBar->addMenu(tr("Edit"));
     QMenu * deleteMenu = menuBar->addMenu(tr("Delete"));
+    QMenu * modeMenu = menuBar->addMenu(tr("Mode"));
 
     canvas = new Canvas(this);
     setCentralWidget(canvas);
@@ -89,6 +90,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
     deleteMenu->addAction(deleteAllAction);
     deleteMenu->addAction(deleteLastAction);
+
+    /* GROUP AND CONNECT FOR DRAWING MODES */
+    QActionGroup * modeGroup = new QActionGroup(this);
+    QAction * lineModeAction = new QAction(tr("Line"), modeGroup);
+    QAction * rectModeAction = new QAction(tr("Rectangle"), modeGroup);
+    QAction * ellipseModeAction = new QAction(tr("Ellipse"), modeGroup);
+
+    QObject::connect(modeGroup, SIGNAL(triggered(QAction*)),
+                     canvas, SLOT(switchMode(QAction*)));
+
+    modeMenu->addAction(lineModeAction);
+    modeMenu->addAction(rectModeAction);
+    modeMenu->addAction(ellipseModeAction);
+
 
 }
 

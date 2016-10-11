@@ -18,7 +18,6 @@ SOURCES += main.cpp\
 
 HEADERS  += mainwindow.h \
     canvas.h \
-    drawnline.h \
     drawnshape.h \
     mode.h
 

@@ -10,6 +10,8 @@ Canvas::Canvas(QWidget * parent) : QWidget(parent)
         drawnShapes = new QList<DrawnShape>();
         mode = line;
         currentPainterPath = new QPainterPath();
+        editing = -1;
+        found = false;
     }
 
 
@@ -19,12 +21,7 @@ void Canvas::paintEvent(QPaintEvent* e)
     QWidget::paintEvent(e);
     QPainter painter(this);
 
-    for (DrawnShape shape : *drawnShapes)
-    {
-        painter.setPen(shape.getPen());
-        painter.drawPath(*(shape.getPath()));
-    }
-
+    /* Paint the current shapes */
     painter.setPen(*pen);
     if (hasMouseTracking())
     {
@@ -46,7 +43,21 @@ void Canvas::paintEvent(QPaintEvent* e)
                 painter.drawPath(*currentPainterPath);
                 painter.drawLine(*start, *currentPos);
             break;
+
+            case edit :
+//                qreal dx = currentPos->rx() - start->rx();
+//                qreal dy = currentPos->ry() - start->ry();
+//                QPoint * offset = new QPoint(*currentPos);
+//                (*drawnShapes)[editing].getPath()->translate(*offset);
+                (*drawnShapes)[editing].getPath()->setElementPositionAt(*currentPos);
+            break;
         }
+    }
+    /* Paint the already drawn shapes */
+    for (DrawnShape shape : *drawnShapes)
+    {
+        painter.setPen(shape.getPen());
+        painter.drawPath(*(shape.getPath()));
     }
 }
 
@@ -55,6 +66,7 @@ void Canvas::mousePressEvent(QMouseEvent * e)
     switch(mode)
     {
         case polygon :
+        {
             switch (e->button())
             {
                 case Qt::LeftButton:
@@ -86,11 +98,38 @@ void Canvas::mousePressEvent(QMouseEvent * e)
                 break;
                 update();
             }
-        break;
+            break;
+        }
 
         case edit :
+        {
+            /* We are looking of the shape thats has been clicked on */
+            /* Then we put it in currentShape */
+            *start = e->pos();
+            *currentPos = e->pos();
+            QPoint *topLeft = new QPoint(e->x() - 5, e->y() - 5);
+            QPoint *bottomRight = new QPoint(e->x() + 5, e->y() + 5);
+            QRect *select = new QRect(*topLeft, *bottomRight);
 
-        break;
+            for (int i = 0; i < drawnShapes->size(); i++)
+            {
+                if ((drawnShapes->at(i)).getPath()->intersects(*select)&&!found)
+                {
+//                    int i = drawnShapes->indexOf(shape);
+                    editing = i;
+                    found = true;
+                }
+            }
+
+            if (found)
+            {
+                setMouseTracking(true);
+
+            }
+
+
+            break;
+        }
 
         default :
             setMouseTracking(true);
@@ -130,7 +169,13 @@ void Canvas::mouseReleaseEvent(QMouseEvent * e)
             setMouseTracking(false);
             break;
         case polygon :
+        {
+            setMouseTracking(false);
+            editing = -1;
+            found = false;
+            qDebug("kikoo");
             break;
+        }
     }
 
     update();
@@ -139,11 +184,15 @@ void Canvas::mouseReleaseEvent(QMouseEvent * e)
 void Canvas::setWidth(QAction *a)
 {
     if (a->text() == tr("Wide"))
-    {
         pen->setWidth(5);
-    }
     if (a->text() == tr("Thin"))
         pen->setWidth(1);
+
+    if (mode == edit && found)
+    {
+       (*drawnShapes)[editing].setPen(*pen);
+        update();
+    }
 }
 
 void Canvas::setColor(QAction *a)
@@ -152,6 +201,12 @@ void Canvas::setColor(QAction *a)
         pen->setColor(*(new QColor(Qt::black)));
     if (a->text() == tr("Blue"))
         pen->setColor(*(new QColor(Qt::blue)));
+
+    if (mode == edit && found)
+    {
+       (*drawnShapes)[editing].setPen(*pen);
+        update();
+    }
 }
 
 void Canvas::setStyle(QAction *a)
@@ -160,6 +215,12 @@ void Canvas::setStyle(QAction *a)
         pen->setStyle(Qt::SolidLine);
     if (a->text() == tr("Dash"))
         pen->setStyle(Qt::DashLine);
+
+    if (mode == edit && found)
+    {
+       (*drawnShapes)[editing].setPen(*pen);
+        update();
+    }
 }
 
 void Canvas::deleteLine(QAction *a)

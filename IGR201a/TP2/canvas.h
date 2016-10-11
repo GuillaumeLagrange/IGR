@@ -13,8 +13,8 @@
 #include <QWidget>
 #include <QList>
 
-#include "drawnshape.h"
 #include "mode.h"
+#include "drawnshape.h"
 
 class Canvas : public QWidget
 {
@@ -44,6 +44,8 @@ private:
     QList<DrawnShape> * drawnShapes;
     Mode mode;
     QPainterPath *currentPainterPath;
+    int editing;
+    bool found;
 };
 
 #endif // CANVAS_H

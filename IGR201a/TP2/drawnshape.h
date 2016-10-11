@@ -39,6 +39,7 @@ public:
     }
 
     QPen getPen() const {return pen;}
+    void setPen(QPen p) {pen = p;}
     QPainterPath * getPath() const {return painterPath;}
 
 

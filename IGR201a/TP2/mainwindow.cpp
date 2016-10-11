@@ -97,6 +97,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QAction * rectModeAction = new QAction(tr("Rectangle"), modeGroup);
     QAction * ellipseModeAction = new QAction(tr("Ellipse"), modeGroup);
     QAction * polygonModeAction = new QAction(tr("Polygon"), modeGroup);
+    QAction * editModeAction = new QAction(tr("Edit"), modeGroup);
 
     QObject::connect(modeGroup, SIGNAL(triggered(QAction*)),
                      canvas, SLOT(switchMode(QAction*)));
@@ -105,6 +106,7 @@ MainWindow::MainWindow(QWidget *parent) :
     modeMenu->addAction(rectModeAction);
     modeMenu->addAction(ellipseModeAction);
     modeMenu->addAction(polygonModeAction);
+    modeMenu->addAction(editModeAction);
 
 
 }

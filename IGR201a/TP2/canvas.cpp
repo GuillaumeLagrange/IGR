@@ -32,27 +32,32 @@ void Canvas::paintEvent(QPaintEvent* e)
         {
             case line :
                 painter.drawLine(*start, *currentPos);
-                break;
+            break;
+
             case rectangle :
                 painter.drawRect(*(new QRect(*start, *currentPos)));
-                break;
+            break;
+
             case ellipse :
                 painter.drawEllipse(*(new QRect(*start, *currentPos)));
-                break;
+            break;
+
             case polygon :
                 painter.drawPath(*currentPainterPath);
                 painter.drawLine(*start, *currentPos);
+            break;
         }
     }
 }
 
 void Canvas::mousePressEvent(QMouseEvent * e)
 {
-    if (mode == polygon)
+    switch(mode)
     {
-      switch (e->button())
-        {
-            case Qt::LeftButton:
+        case polygon :
+            switch (e->button())
+            {
+                case Qt::LeftButton:
                 if (!hasMouseTracking())
                 {
                     *start = e->pos();
@@ -68,7 +73,8 @@ void Canvas::mousePressEvent(QMouseEvent * e)
                     *start=*currentPos;
                 }
                 break;
-            default :
+
+                default :
                 if (!currentPainterPath->isEmpty())
                 {
                     currentPainterPath->lineTo(*currentPos);
@@ -78,15 +84,20 @@ void Canvas::mousePressEvent(QMouseEvent * e)
                     setMouseTracking(false);
                 }
                 break;
-        }
-      update();
-    }
-    else
-    {
-        setMouseTracking(true);
-        *start = e->pos();
-        *currentPos = e->pos();
-        update();
+                update();
+            }
+        break;
+
+        case edit :
+
+        break;
+
+        default :
+            setMouseTracking(true);
+            *start = e->pos();
+            *currentPos = e->pos();
+            update();
+        break;
     }
 }
 
@@ -174,4 +185,6 @@ void Canvas::switchMode(QAction *a)
         mode = ellipse;
     if (a->text() == tr("Polygon"))
         mode = polygon;
+    if (a->text() == tr("Edit"))
+        mode = edit;
 }

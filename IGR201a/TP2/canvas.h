@@ -13,7 +13,6 @@
 #include <QWidget>
 #include <QList>
 
-#include "drawnline.h"
 #include "drawnshape.h"
 #include "mode.h"
 

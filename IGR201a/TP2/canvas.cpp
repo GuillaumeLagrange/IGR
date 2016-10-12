@@ -4,14 +4,14 @@
 
 Canvas::Canvas(QWidget * parent) : QWidget(parent)
     {
-        start = new QPoint();
-        currentPos = new QPoint();
+        start = new QPointF();
+        currentPos = new QPointF();
         pen = new QPen();
         drawnShapes = new QList<DrawnShape>();
         mode = line;
         currentPainterPath = new QPainterPath();
         editing = -1;
-        found = false;
+        moving = false;
     }
 
 
@@ -32,11 +32,11 @@ void Canvas::paintEvent(QPaintEvent* e)
             break;
 
             case rectangle :
-                painter.drawRect(*(new QRect(*start, *currentPos)));
+                painter.drawRect(*(new QRectF(*start, *currentPos)));
             break;
 
             case ellipse :
-                painter.drawEllipse(*(new QRect(*start, *currentPos)));
+                painter.drawEllipse(*(new QRectF(*start, *currentPos)));
             break;
 
             case polygon :
@@ -45,19 +45,30 @@ void Canvas::paintEvent(QPaintEvent* e)
             break;
 
             case edit :
-//                qreal dx = currentPos->rx() - start->rx();
-//                qreal dy = currentPos->ry() - start->ry();
-//                QPoint * offset = new QPoint(*currentPos);
-//                (*drawnShapes)[editing].getPath()->translate(*offset);
-                (*drawnShapes)[editing].getPath()->setElementPositionAt(*currentPos);
+                qreal dx = currentPos->x() - start->x();
+                qreal dy = currentPos->y() - start->y();
+//                QPointF * offset = new QPointF(dx/10000,dy/10000);
+                *currentPainterPath = (*drawnShapes)[editing].getPath()->translated(dx,dy);
+                painter.drawPath(*currentPainterPath);
+//                currentPainterPath = (*drawnShapes)[editing].getPath();
+//                for (int i = 0; i < currentPainterPath->length(); i++)
+//                {
+//                    qreal oldx = currentPainterPath->elementAt(i).x;
+//                    qreal oldy = currentPainterPath->elementAt(i).y;
+//                    currentPainterPath->setElementPositionAt(i, oldx + dx, oldy + dy);
+//                }
             break;
         }
     }
     /* Paint the already drawn shapes */
-    for (DrawnShape shape : *drawnShapes)
+    for (int i = 0; i < drawnShapes->length(); i++)
     {
-        painter.setPen(shape.getPen());
-        painter.drawPath(*(shape.getPath()));
+        if (i != editing || !moving)
+        {
+            DrawnShape shape = (*drawnShapes)[i];
+            painter.setPen(shape.getPen());
+            painter.drawPath(*(shape.getPath()));
+        }
     }
 }
 
@@ -107,24 +118,24 @@ void Canvas::mousePressEvent(QMouseEvent * e)
             /* Then we put it in currentShape */
             *start = e->pos();
             *currentPos = e->pos();
-            QPoint *topLeft = new QPoint(e->x() - 5, e->y() - 5);
-            QPoint *bottomRight = new QPoint(e->x() + 5, e->y() + 5);
-            QRect *select = new QRect(*topLeft, *bottomRight);
+            QPointF *topLeft = new QPointF(e->x() - 5, e->y() - 5);
+            QPointF *bottomRight = new QPointF(e->x() + 5, e->y() + 5);
+            QRectF *select = new QRectF(*topLeft, *bottomRight);
 
             for (int i = 0; i < drawnShapes->size(); i++)
             {
-                if ((drawnShapes->at(i)).getPath()->intersects(*select)&&!found)
+                if ((drawnShapes->at(i)).getPath()->intersects(*select)&&!moving)
                 {
 //                    int i = drawnShapes->indexOf(shape);
                     editing = i;
-                    found = true;
+                    moving = true;
                 }
             }
 
-            if (found)
+            if (moving)
             {
                 setMouseTracking(true);
-
+                *pen = (*drawnShapes)[editing].getPen();
             }
 
 
@@ -154,26 +165,28 @@ void Canvas::mouseReleaseEvent(QMouseEvent * e)
     switch(mode)
     {
         case line :
-            drawnShapes->append(*(new DrawnShape(new QLine(*start,*currentPos),
+            drawnShapes->append(*(new DrawnShape(new QLineF(*start,*currentPos),
                                                  pen)));
             setMouseTracking(false);
             break;
         case rectangle :
-            drawnShapes->append(*(new DrawnShape(new QRect(*start, *currentPos),
+            drawnShapes->append(*(new DrawnShape(new QRectF(*start, *currentPos),
                                                  pen, mode)));
             setMouseTracking(false);
             break;
         case ellipse :
-            drawnShapes->append(*(new DrawnShape(new QRect(*start, *currentPos),
+            drawnShapes->append(*(new DrawnShape(new QRectF(*start, *currentPos),
                                                  pen, mode)));
             setMouseTracking(false);
             break;
         case polygon :
+            break;
+
+        case edit :
         {
             setMouseTracking(false);
-            editing = -1;
-            found = false;
-            qDebug("kikoo");
+            moving = false;
+            (*drawnShapes)[editing].setPath(currentPainterPath);
             break;
         }
     }
@@ -188,9 +201,9 @@ void Canvas::setWidth(QAction *a)
     if (a->text() == tr("Thin"))
         pen->setWidth(1);
 
-    if (mode == edit && found)
+    if (mode == edit && (editing != -1))
     {
-       (*drawnShapes)[editing].setPen(*pen);
+        (*drawnShapes)[editing].setPen(*pen);
         update();
     }
 }
@@ -202,7 +215,7 @@ void Canvas::setColor(QAction *a)
     if (a->text() == tr("Blue"))
         pen->setColor(*(new QColor(Qt::blue)));
 
-    if (mode == edit && found)
+    if (mode == edit && (editing != -1))
     {
        (*drawnShapes)[editing].setPen(*pen);
         update();
@@ -216,7 +229,7 @@ void Canvas::setStyle(QAction *a)
     if (a->text() == tr("Dash"))
         pen->setStyle(Qt::DashLine);
 
-    if (mode == edit && found)
+    if (mode == edit && editing != -1)
     {
        (*drawnShapes)[editing].setPen(*pen);
         update();
@@ -248,4 +261,5 @@ void Canvas::switchMode(QAction *a)
         mode = polygon;
     if (a->text() == tr("Edit"))
         mode = edit;
+    editing = -1;
 }

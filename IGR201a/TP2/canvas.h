@@ -38,14 +38,14 @@ protected:
     void mouseReleaseEvent(QMouseEvent*);
 
 private:
-    QPoint * start;
-    QPoint * currentPos;
+    QPointF * start;
+    QPointF * currentPos;
     QPen * pen;
     QList<DrawnShape> * drawnShapes;
     Mode mode;
     QPainterPath *currentPainterPath;
     int editing;
-    bool found;
+    bool moving;
 };
 
 #endif // CANVAS_H

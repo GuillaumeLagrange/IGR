@@ -8,7 +8,7 @@
 class DrawnShape
 {
 public:
-    DrawnShape (QRect *rect, QPen *p, Mode m)
+    DrawnShape (QRectF *rect, QPen *p, Mode m)
     {
         painterPath = new QPainterPath();
         if (m == rectangle)
@@ -24,7 +24,7 @@ public:
         pen = *p;
     }
 
-    DrawnShape(QLine *l, QPen *p)
+    DrawnShape(QLineF *l, QPen *p)
     {
         painterPath = new QPainterPath();
         painterPath->moveTo(l->p1());
@@ -41,6 +41,7 @@ public:
     QPen getPen() const {return pen;}
     void setPen(QPen p) {pen = p;}
     QPainterPath * getPath() const {return painterPath;}
+    void setPath(QPainterPath *path) {*painterPath = *path;}
 
 
 private:

@@ -76,18 +76,20 @@ void MainWindow::saveFile() {
 
 }
 
+
 void MainWindow::quitFile() {
-    qDebug("Quit");
-    QMessageBox * msgBox = new QMessageBox(this);
-
-    msgBox->setText(tr("Are you sur you want to quit ?"));
-    msgBox->setStandardButtons(QMessageBox::No|QMessageBox::Yes);
-    int ret = msgBox->exec();
-    if (ret == QMessageBox::Yes)
-        this->close();
-
+//    QApplication::sendEvent(this, new QCloseEvent());
+    close();
 }
 
 void MainWindow::closeEvent(QCloseEvent *e) {
-    this->quitFile();
+    QMessageBox * msgBox = new QMessageBox(this);
+
+    msgBox->setText(tr("Are you sur you want to quit ?"));
+    msgBox->setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+    int ret = msgBox->exec();
+    if (ret == QMessageBox::Yes)
+        e->accept();
+    else
+        e->ignore();
 }

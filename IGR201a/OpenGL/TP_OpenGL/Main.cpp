@@ -1,7 +1,7 @@
 // ----------------------------------------------
-// Informatique Graphique 3D & Réalité Virtuelle.
+// Informatique Graphique 3D & Rï¿½alitï¿½ Virtuelle.
 // Travaux Pratiques
-// Introduction à OpenGL
+// Introduction ï¿½ OpenGL
 // Copyright (C) 2015 Tamy Boubekeur
 // All rights reserved.
 // ----------------------------------------------
@@ -12,7 +12,70 @@
 #include <cmath>
 #include <GL/glut.h>
 
+#include <math.h>
+
+#define X .525731112119133606 
+#define Z .850650808352039932
+
 using namespace std;
+
+// These functions are used to draw a sphere
+static GLfloat vdata[12][3] = {    
+        {-X, 0.0, Z}, {X, 0.0, Z}, {-X, 0.0, -Z}, {X, 0.0, -Z},    
+        {0.0, Z, X}, {0.0, Z, -X}, {0.0, -Z, X}, {0.0, -Z, -X},    
+        {Z, X, 0.0}, {-Z, X, 0.0}, {Z, -X, 0.0}, {-Z, -X, 0.0} 
+};
+
+static GLuint tindices[20][3] = { 
+        {0,4,1}, {0,9,4}, {9,5,4}, {4,5,8}, {4,8,1},    
+        {8,10,1}, {8,3,10}, {5,3,8}, {5,2,3}, {2,7,3},    
+        {7,10,3}, {7,6,10}, {7,11,6}, {11,0,6}, {0,1,6}, 
+        {6,1,10}, {9,0,11}, {9,11,2}, {9,2,5}, {7,2,11} 
+};
+
+void normalize(GLfloat *a) {
+        GLfloat d=sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2]);
+        a[0]/=d; a[1]/=d; a[2]/=d;
+}
+
+void drawtri(GLfloat *a, GLfloat *b, GLfloat *c, int div, float r) {
+        if (div<=0) 
+        {
+            glNormal3fv(a); glColor3f(fabs(a[0]*r), fabs(a[1]*r), fabs(a[2]*r)); glVertex3f(a[0]*r, a[1]*r, a[2]*r);
+            glNormal3fv(b); glColor3f(fabs(b[0]*r), fabs(b[1]*r), fabs(b[2]*r)); glVertex3f(b[0]*r, b[1]*r, b[2]*r);
+            glNormal3fv(c); glColor3f(fabs(c[0]*r), fabs(c[1]*r), fabs(c[2]*r)); glVertex3f(c[0]*r, c[1]*r, c[2]*r);
+        } else 
+        {
+             GLfloat ab[3], ac[3], bc[3];
+             for (int i=0;i<3;i++) 
+             {
+                 ab[i]=(a[i]+b[i])/2;
+                 ac[i]=(a[i]+c[i])/2;
+                 bc[i]=(b[i]+c[i])/2;
+             }
+             normalize(ab); normalize(ac); normalize(bc);
+             drawtri(a, ab, ac, div-1, r);
+             drawtri(b, bc, ab, div-1, r);
+             drawtri(c, ac, bc, div-1, r);
+             drawtri(ab, bc, ac, div-1, r);  
+         }  
+}
+
+void drawSphere(int ndiv, float radius=1.0) {
+        glBegin(GL_TRIANGLES);
+        for (int i=0;i<20;i++)
+            drawtri(vdata[tindices[i][0]], vdata[tindices[i][1]], vdata[tindices[i][2]],ndiv, radius);
+        glEnd();
+}
+
+void glSphere(float x, float y, float z)
+{
+    glMatrixMode (GL_MODELVIEW);
+    glPushMatrix ();
+    glTranslatef(x,y,z);
+    drawSphere(3, 0.5);
+    glPopMatrix();
+}
 
 // App parameters
 static const unsigned int DEFAULT_SCREENWIDTH = 1024;
@@ -45,7 +108,7 @@ void printUsage () {
 		 << appTitle << std::endl
          << "Author : Tamy Boubekeur" << std::endl << std::endl
          << "Usage : ./main [<file.off>]" << std::endl
-         << "Cammandes clavier :" << std::endl 
+         << "Cammandes clavier :" << std::endl
          << "------------------" << std::endl
          << " ?: Print help" << std::endl
 		 << " w: Toggle wireframe mode" << std::endl
@@ -55,7 +118,7 @@ void printUsage () {
          << " q, <esc>: Quit" << std::endl << std::endl; 
 }
 
-void init () {  
+void init () {
 	// OpenGL initialization
     glCullFace (GL_BACK);     // Specifies the faces to cull (here the ones pointing away from the camera)
     glEnable (GL_CULL_FACE); // Enables face culling (based on the orientation defined by the CW/CCW enumeration).
@@ -63,17 +126,17 @@ void init () {
     glEnable (GL_DEPTH_TEST); // Enable the z-buffer in the rasterization
 	glLineWidth (2.0); // Set the width of edges in GL_LINE polygon mode
     glClearColor (0.0f, 0.0f, 0.0f, 1.0f); // Background color
-	
+
 	// Camera initialization
 	fovAngle = 45.f;
 	nearPlane = 0.01;
 	farPlane = 10.0;
-	camPhi = M_PI/2.0;
-	camTheta = M_PI/2.0;
-	camDist2Target = 5.0;
-	camTargetX = 0.0;
-	camTargetY = 0.0;
-	camTargetZ = 0.0;
+	camPhi = M_PI/2;
+	camTheta = M_PI/2;
+	camDist2Target = 8;
+	camTargetX = 1.0;
+	camTargetY = 1.0;
+	camTargetZ = 1.0;
 }
 
 void setupCamera () {
@@ -98,18 +161,21 @@ void reshape (int w, int h) {
 	setupCamera ();
 }
 
-void display () {  
-    setupCamera ();   
+void display () {
+    setupCamera ();
     glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Erase the color and z buffers.
 
 	// Put your drawing code (glBegin, glVertex, glCallList, glDrawArray, etc) here
-    glBegin(GL_TRIANGLES);
-    glColor3f(1.0,1.0,1.0);
-    glVertex3f(0.0,0.0,0.0);
-    glVertex3f(1.0,0.0,0.0);
-    glVertex3f(0.0,1.0,0.0);
-    glEnd();
-    
+        glSphere(0,0,0);
+        glSphere(1,0,0);
+        glSphere(2,0,0);
+        glSphere(0.5,0.90,0);
+        glSphere(1.5,0.90,0);
+        glSphere(1,1.8,0);
+        glSphere(0.5,0.3,0.9);
+        glSphere(1.5,0.3,0.9);
+        glSphere(1,1.18,0.9);
+        glSphere(1,0.66,1.8);
 
     glFlush (); // Ensures any previous OpenGL call has been executed
     glutSwapBuffers ();  // swap the render buffer and the displayed (screen) one
@@ -144,6 +210,8 @@ void motion (int x, int y) {
 void idle () {
 }
 
+
+// Main function
 int main (int argc, char ** argv) {
     glutInit (&argc, argv); // Initialize a glut app
     glutInitDisplayMode (GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE); // Setup a RGBA framebuffer to display, with a depth buffer (z-buffer), in double buffer mode (fill a buffer then update the screen)

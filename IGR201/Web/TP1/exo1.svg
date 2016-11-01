@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600">
+
+  <g transform="translate(400,200)" onclick="alert('Button video clicked');">
+    <rect width="150" rx="20" ry="20" height="100" fill="cyan" stroke="gray" stroke-width="5"/>
+    <text x="75" y="50" fill="black" font-size="20" text-anchor="middle">Video</text>
+  </g>
+
+  <g transform="translate(200,200)" onclick="alert('Button audio clicked');">
+    <rect width="150" rx="20" ry="20" height="100" fill="cyan" stroke="gray" stroke-width="5"/>
+    <text x="75" y="50" fill="black" font-size="20" text-anchor="middle">Audio</text>
+  </g>
+
+</svg>

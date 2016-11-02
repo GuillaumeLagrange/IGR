@@ -19,134 +19,22 @@
 
 using namespace std;
 
-// These functions are used to draw a sphere
-// static GLfloat vdata[12][3] = {
-//         {-X, 0.0, Z}, {X, 0.0, Z}, {-X, 0.0, -Z}, {X, 0.0, -Z},
-//         {0.0, Z, X}, {0.0, Z, -X}, {0.0, -Z, X}, {0.0, -Z, -X},
-//         {Z, X, 0.0}, {-Z, X, 0.0}, {Z, -X, 0.0}, {-Z, -X, 0.0}
-// };
-// 
-// 
-// static GLuint tindices[20][3] = {
-//         {0,4,1}, {0,9,4}, {9,5,4}, {4,5,8}, {4,8,1},
-//         {8,10,1}, {8,3,10}, {5,3,8}, {5,2,3}, {2,7,3},
-//         {7,10,3}, {7,6,10}, {7,11,6}, {11,0,6}, {0,1,6},
-//         {6,1,10}, {9,0,11}, {9,11,2}, {9,2,5}, {7,2,11}
-// };
-// 
-// 
-// void normalize(GLfloat *a) {
-//         GLfloat d=sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2]);
-//         a[0]/=d; a[1]/=d; a[2]/=d;
-// }
-// 
-// void drawtri(GLfloat *a, GLfloat *b, GLfloat *c, int div, float r) {
-//         if (div<=0)
-//         {
-//             glNormal3fv(a); glColor3f(fabs(a[0]*r), fabs(a[1]*r), fabs(a[2]*r)); glVertex3f(a[0]*r, a[1]*r, a[2]*r);
-//             glNormal3fv(b); glColor3f(fabs(b[0]*r), fabs(b[1]*r), fabs(b[2]*r)); glVertex3f(b[0]*r, b[1]*r, b[2]*r);
-//             glNormal3fv(c); glColor3f(fabs(c[0]*r), fabs(c[1]*r), fabs(c[2]*r)); glVertex3f(c[0]*r, c[1]*r, c[2]*r);
-//         } else
-//         {
-//              GLfloat ab[3], ac[3], bc[3];
-//              for (int i=0;i<3;i++)
-//              {
-//                  ab[i]=(a[i]+b[i])/2;
-//                  ac[i]=(a[i]+c[i])/2;
-//                  bc[i]=(b[i]+c[i])/2;
-//              }
-//              normalize(ab); normalize(ac); normalize(bc);
-//              drawtri(a, ab, ac, div-1, r);
-//              drawtri(b, bc, ab, div-1, r);
-//              drawtri(c, ac, bc, div-1, r);
-//              drawtri(ab, bc, ac, div-1, r);
-//          }
-// }
-// 
-// void drawSphere(int ndiv, float radius=1.0) {
-//         glBegin(GL_TRIANGLES);
-//         for (int i=0;i<20;i++)
-//             drawtri(vdata[tindices[i][0]], vdata[tindices[i][1]], vdata[tindices[i][2]],ndiv, radius);
-//         glEnd();
-// }
-// 
-// void glSphere(float x, float y, float z)
-// {
-//     glMatrixMode (GL_MODELVIEW);
-//     glPushMatrix ();
-//     glTranslatef(x,y,z);
-//     drawSphere(2, 0.5);
-//     glPopMatrix();
-// }
+std::vector<GLfloat> spherePositionArray;
+std::vector<GLfloat> sphereNormalArray;
+std::vector<GLfloat> texcoords;
+std::vector<GLushort> sphereIndexArray;
 
-//TEST
-class SolidSphere
+void glSphere(GLfloat x, GLfloat y, GLfloat z)
 {
-protected:
-    std::vector<GLfloat> vertices;
-    std::vector<GLfloat> normals;
-    std::vector<GLfloat> texcoords;
-    std::vector<GLushort> indices;
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glTranslatef(x,y,z);
 
-public:
-    SolidSphere(float radius, unsigned int rings, unsigned int sectors)
-    {
-        float const R = 1./(float)(rings-1);
-        float const S = 1./(float)(sectors-1);
-        int r, s;
+    glDrawElements(GL_TRIANGLES, sphereIndexArray.size(),
+            GL_UNSIGNED_SHORT, &sphereIndexArray[0]);
 
-        vertices.resize(rings * sectors * 3);
-        normals.resize(rings * sectors * 3);
-        texcoords.resize(rings * sectors * 2);
-        std::vector<GLfloat>::iterator v = vertices.begin();
-        std::vector<GLfloat>::iterator n = normals.begin();
-        std::vector<GLfloat>::iterator t = texcoords.begin();
-        for(r = 0; r < rings; r++) for(s = 0; s < sectors; s++) {
-                float const y = sin( -M_PI_2 + M_PI * r * R );
-                float const x = cos(2*M_PI * s * S) * sin( M_PI * r * R );
-                float const z = sin(2*M_PI * s * S) * sin( M_PI * r * R );
-
-                *t++ = s*S;
-                *t++ = r*R;
-
-                *v++ = x * radius;
-                *v++ = y * radius;
-                *v++ = z * radius;
-
-                *n++ = x;
-                *n++ = y;
-                *n++ = z;
-        }
-
-        indices.resize(rings * sectors * 4);
-        std::vector<GLushort>::iterator i = indices.begin();
-        for(r = 0; r < rings-1; r++) for(s = 0; s < sectors-1; s++) {
-                *i++ = r * sectors + s;
-                *i++ = r * sectors + (s+1);
-                *i++ = (r+1) * sectors + (s+1);
-                *i++ = (r+1) * sectors + s;
-        }
-    }
-
-    void draw(GLfloat x, GLfloat y, GLfloat z)
-    {
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glTranslatef(x,y,z);
-
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_NORMAL_ARRAY);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-        glVertexPointer(3, GL_FLOAT, 0, &vertices[0]);
-        glNormalPointer(GL_FLOAT, 0, &normals[0]);
-        glTexCoordPointer(2, GL_FLOAT, 0, &texcoords[0]);
-        glDrawElements(GL_QUADS, indices.size(), GL_UNSIGNED_SHORT, &indices[0]);
-        glPopMatrix();
-    }
-};
-
-SolidSphere sphere (0.5, 20, 34);
+    glPopMatrix();
+}
 
 // App parameters
 static const unsigned int DEFAULT_SCREENWIDTH = 1024;
@@ -196,33 +84,117 @@ void init () {
     glDepthFunc (GL_LESS); // Specify the depth test for the z-buffer
     glEnable (GL_DEPTH_TEST); // Enable the z-buffer in the rasterization
 	glLineWidth (2.0); // Set the width of edges in GL_LINE polygon mode
-    glClearColor (0.0f, 0.0f, 0.0f, 1.0f); // Background color
+  glClearColor (0.0f, 0.0f, 0.0f, 1.0f); // Background color
 
-	// Camera initialization
-	fovAngle = 45.f;
-	nearPlane = 0.01;
-	farPlane = 10.0;
-	camPhi = M_PI/2;
-	camTheta = 0;
-	camDist2Target = 5;
-	camTargetX = 1.0;
-	camTargetY = 1.0;
-	camTargetZ = 1.0;
+  float radius = 1;
+  unsigned int ntheta = 40;
+  unsigned int nphi = 40;
+
+  float const T = 1./(float)(ntheta);
+  float const P = 1./(float)(nphi);
+  unsigned int i, j;
+
+//  spherePositionArray.resize(ntheta * nphi * 3 * 4);
+  sphereNormalArray.resize(ntheta * nphi * 3 * 4);
+//  texcoords.resize(rings * sectors * 2);
+  sphereIndexArray.resize(ntheta * nphi * 6);
+//  std::vector<GLfloat>::iterator v = spherePositionArray.begin();
+  std::vector<GLfloat>::iterator n = sphereNormalArray.begin();
+  std::vector<GLushort>::iterator d = sphereIndexArray.begin();
+//  std::vector<GLfloat>::iterator t = texcoords.begin();
+  for(i = 0; i < ntheta; i++) for(j = 0; j < nphi; j++) {
+
+          float const th0 = j*2*M_PI*T;
+          float const th1 = (j+1)*2*M_PI*T;
+          float const phi0 = i*2*M_PI*P;
+          float const phi1 = (i+1)*2*M_PI*P;
+
+          float const x1 = sin(phi0)*cos(th0);
+          float const x2 = sin(phi0)*cos(th1);
+          float const x3 = sin(phi1)*cos(th1);
+          float const x4 = sin(phi1)*cos(th0);
+
+          float const y1 = sin(phi0)*sin(th0);
+          float const y2 = sin(phi0)*sin(th1);
+          float const y3 = sin(phi1)*sin(th1);
+          float const y4 = sin(phi1)*sin(th0);
+
+          float const z1 = cos(phi0);
+          float const z2 = cos(phi1);
+
+//          *t++ = s*S;
+//          *t++ = r*R;
+
+          spherePositionArray.push_back(x1 * radius);
+          spherePositionArray.push_back(y1 * radius);
+          spherePositionArray.push_back(z1 * radius);
+          int i1 = spherePositionArray.size()/3 -1;
+
+          spherePositionArray.push_back(x2 * radius);
+          spherePositionArray.push_back(y2 * radius);
+          spherePositionArray.push_back(z1 * radius);
+          int i2 = spherePositionArray.size()/3 -1;
+
+          spherePositionArray.push_back(x3 * radius);
+          spherePositionArray.push_back(y3 * radius);
+          spherePositionArray.push_back(z2 * radius);
+          int i3 = spherePositionArray.size()/3 -1;
+
+          spherePositionArray.push_back(x4 * radius);
+          spherePositionArray.push_back(y4 * radius);
+          spherePositionArray.push_back(z2 * radius);
+          int i4 = spherePositionArray.size()/3 -1;
+
+          *n++ = x1;
+          *n++ = y1;
+          *n++ = z1;
+
+          *n++ = x2;
+          *n++ = y2;
+          *n++ = z1;
+
+          *n++ = x3;
+          *n++ = y3;
+          *n++ = z2;
+
+          *n++ = x4;
+          *n++ = y4;
+          *n++ = z2;
+
+          *d++ = i1;
+          *d++ = i4;
+          *d++ = i2;
+
+          *d++ = i2;
+          *d++ = i4;
+          *d++ = i3;
+  }
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glVertexPointer(3, GL_FLOAT, 3*sizeof(float), &spherePositionArray[0]);
+
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glNormalPointer(GL_FLOAT, 3*sizeof(float), &sphereNormalArray[0]);
+  glEnable(GL_NORMALIZE);
+
+//  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+//  glTexCoordPointer(2, GL_FLOAT, 0, &texcoords[0]);
 
 
-        sphere.draw(0,0,0);
-        sphere.draw(1,0,0);
-        sphere.draw(2,0,0);
-        sphere.draw(0.5,0.90,0);
-        sphere.draw(1.5,0.90,0);
-        sphere.draw(1,1.8,0);
-        sphere.draw(0.5,0.3,0.9);
-        sphere.draw(1.5,0.3,0.9);
-        sphere.draw(1,1.18,0.9);
-        sphere.draw(1,0.66,1.8);
+  // Camera initialization
+  fovAngle = 45.f;
+  nearPlane = 0.01;
+  farPlane = 10.0;
+  camPhi = M_PI;
+  camTheta = 0;
+  camDist2Target = 5;
+  camTargetX = 0.0;
+  camTargetY = 0.0;
+  camTargetZ = 0.0;
+
 
   // Lighting
-  GLfloat light_position0[4]={1.0f, 1.0f, 1.0f, 1.0f};
+  GLfloat light_position0[4]={10.0f, 10.0f, 10.0f, 1.0f};
   GLfloat color0[4] = {1.0f,1.0f,0.9f,1.0f};
   glLightfv (GL_LIGHT0, GL_POSITION, light_position0);
   glLightfv (GL_LIGHT0, GL_DIFFUSE, color0);
@@ -262,16 +234,8 @@ void reshape (int w, int h) {
 }
 
 void display () { setupCamera (); glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Erase the color and z buffers.  // Put your drawing code (glBegin, glVertex, glCallList, glDrawArray, etc) here
-        sphere.draw(0,0,0);
-        sphere.draw(1,0,0);
-        sphere.draw(2,0,0);
-        sphere.draw(0.5,0.90,0);
-        sphere.draw(1.5,0.90,0);
-        sphere.draw(1,1.8,0);
-        sphere.draw(0.5,0.3,0.9);
-        sphere.draw(1.5,0.3,0.9);
-        sphere.draw(1,1.18,0.9);
-        sphere.draw(1,0.66,1.8);
+
+    glSphere(0.0,0.0,0.0);
 
     glFlush (); // Ensures any previous OpenGL call has been executed
     glutSwapBuffers ();  // swap the render buffer and the displayed (screen) one

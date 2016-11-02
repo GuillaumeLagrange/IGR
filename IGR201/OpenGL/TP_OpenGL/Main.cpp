@@ -83,12 +83,13 @@ void init () {
     glEnable (GL_CULL_FACE); // Enables face culling (based on the orientation defined by the CW/CCW enumeration).
     glDepthFunc (GL_LESS); // Specify the depth test for the z-buffer
     glEnable (GL_DEPTH_TEST); // Enable the z-buffer in the rasterization
+    glEnable(GL_LIGHTING);
 	glLineWidth (2.0); // Set the width of edges in GL_LINE polygon mode
   glClearColor (0.0f, 0.0f, 0.0f, 1.0f); // Background color
 
   float radius = 1;
-  unsigned int ntheta = 40;
-  unsigned int nphi = 40;
+  unsigned int ntheta = 100;
+  unsigned int nphi = 100;
 
   float const T = 1./(float)(ntheta);
   float const P = 1./(float)(nphi);

@@ -21,19 +21,51 @@ using namespace std;
 
 std::vector<GLfloat> spherePositionArray;
 std::vector<GLfloat> sphereNormalArray;
-std::vector<GLfloat> texcoords;
+std::vector<GLfloat> sphereTexcoordArray;
 std::vector<GLushort> sphereIndexArray;
+GLuint texture; // Identifiant opengl de la texture
+static float currentTime;
+bool pause = false;
 
 void glSphere(GLfloat x, GLfloat y, GLfloat z)
 {
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glTranslatef(x,y,z);
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glTranslatef(x,y,z);
 
-    glDrawElements(GL_TRIANGLES, sphereIndexArray.size(),
-            GL_UNSIGNED_SHORT, &sphereIndexArray[0]);
+  glDrawElements(GL_TRIANGLES, sphereIndexArray.size(),
+          GL_UNSIGNED_SHORT, &sphereIndexArray[0]);
 
-    glPopMatrix();
+  glPopMatrix();
+}
+
+void glSphereWithMat (float x, float y, float z, float r, float difR, float difG,
+        float difB, float specR, float specG, float specB, float shininess)
+{
+  GLfloat material_color[4] = {difR, difG, difB, 1.0f};
+  GLfloat material_specular[4] = {specR, specG, specB,1.0};
+  glMaterialfv (GL_FRONT_AND_BACK, GL_SPECULAR, material_specular);
+  glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, material_color);
+  glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, shininess);
+
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glSphere(x,y,z);
+}
+
+void genCheckerboard(unsigned int width, unsigned int height, unsigned char * image){
+    unsigned int i, j;
+    int ind = 0;
+    for (i=0; i< width; i++) for (j=0;j<height;j++){
+        if (((i+j)/10)%2){
+          image[ind++] = 255;
+          image[ind++] = 0;
+          image[ind++] = 0;
+        } else {
+          image[ind++] = 0;
+          image[ind++] = 0;
+          image[ind++] = 255;
+        }
+    }
 }
 
 // App parameters
@@ -79,32 +111,31 @@ void printUsage () {
 
 void init () {
 	// OpenGL initialization
-    glCullFace (GL_BACK);     // Specifies the faces to cull (here the ones pointing away from the camera)
-    glEnable (GL_CULL_FACE); // Enables face culling (based on the orientation defined by the CW/CCW enumeration).
-    glDepthFunc (GL_LESS); // Specify the depth test for the z-buffer
-    glEnable (GL_DEPTH_TEST); // Enable the z-buffer in the rasterization
-    glEnable(GL_LIGHTING);
+  glCullFace (GL_BACK);     // Specifies the faces to cull (here the ones pointing away from the camera)
+  glEnable (GL_CULL_FACE); // Enables face culling (based on the orientation defined by the CW/CCW enumeration).
+  glDepthFunc (GL_LESS); // Specify the depth test for the z-buffer
+  glEnable (GL_DEPTH_TEST); // Enable the z-buffer in the rasterization
+  glEnable(GL_LIGHTING);
 	glLineWidth (2.0); // Set the width of edges in GL_LINE polygon mode
   glClearColor (0.0f, 0.0f, 0.0f, 1.0f); // Background color
 
+  // Sphere array initialisation
   float radius = 1;
-  unsigned int ntheta = 100;
-  unsigned int nphi = 100;
+  unsigned int ntheta = 40;
+  unsigned int nphi = 40;
 
   float const T = 1./(float)(ntheta);
   float const P = 1./(float)(nphi);
   unsigned int i, j;
 
-//  spherePositionArray.resize(ntheta * nphi * 3 * 4);
   sphereNormalArray.resize(ntheta * nphi * 3 * 4);
-//  texcoords.resize(rings * sectors * 2);
+  sphereTexcoordArray.resize(ntheta * nphi * 12);
   sphereIndexArray.resize(ntheta * nphi * 6);
-//  std::vector<GLfloat>::iterator v = spherePositionArray.begin();
   std::vector<GLfloat>::iterator n = sphereNormalArray.begin();
   std::vector<GLushort>::iterator d = sphereIndexArray.begin();
-//  std::vector<GLfloat>::iterator t = texcoords.begin();
-  for(i = 0; i < ntheta; i++) for(j = 0; j < nphi; j++) {
+  std::vector<GLfloat>::iterator t = sphereTexcoordArray.begin();
 
+  for(i = 0; i < ntheta; i++) for(j = 0; j < nphi; j++) {
           float const th0 = j*2*M_PI*T;
           float const th1 = (j+1)*2*M_PI*T;
           float const phi0 = i*2*M_PI*P;
@@ -122,9 +153,6 @@ void init () {
 
           float const z1 = cos(phi0);
           float const z2 = cos(phi1);
-
-//          *t++ = s*S;
-//          *t++ = r*R;
 
           spherePositionArray.push_back(x1 * radius);
           spherePositionArray.push_back(y1 * radius);
@@ -166,9 +194,29 @@ void init () {
           *d++ = i4;
           *d++ = i2;
 
+          //Point i1
+          *t++ = j*P;
+          *t++ = i*T;
+          //Point i4
+          *t++ = (j+1)*P;
+          *t++ = i*T;
+          //Point i2
+          *t++ = j*P;
+          *t++ = (i+1)*T;
+
           *d++ = i2;
           *d++ = i4;
           *d++ = i3;
+
+          //Point i2
+          *t++ = j*P;
+          *t++ = (i+1)*T;
+          //Point i4
+          *t++ = (j+1)*P;
+          *t++ = i*T;
+          //Point i3
+          *t++ = (j+1)*P;
+          *t++ = (i+1)*T;
   }
 
   glEnableClientState(GL_VERTEX_ARRAY);
@@ -178,9 +226,25 @@ void init () {
   glNormalPointer(GL_FLOAT, 3*sizeof(float), &sphereNormalArray[0]);
   glEnable(GL_NORMALIZE);
 
-//  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-//  glTexCoordPointer(2, GL_FLOAT, 0, &texcoords[0]);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glTexCoordPointer(2, GL_FLOAT, 2*sizeof(float), &sphereTexcoordArray[0]);
 
+  // Texture checker board
+  int width=150;
+  int height=150;
+  unsigned char image[3*width*height];
+  genCheckerboard(width,height,image);
+
+  glEnable (GL_TEXTURE_2D); // Activation de la texturation 2D
+  glGenTextures (1, &texture); // Génération d’une texture OpenGL
+  glBindTexture (GL_TEXTURE_2D, texture);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  // La commande suivante remplit la texture (sur GPU) avec les données de l’image
+  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+  GL_UNSIGNED_BYTE, image);
 
   // Camera initialization
   fovAngle = 45.f;
@@ -192,7 +256,6 @@ void init () {
   camTargetX = 0.0;
   camTargetY = 0.0;
   camTargetZ = 0.0;
-
 
   // Lighting
   GLfloat light_position0[4]={10.0f, 10.0f, 10.0f, 1.0f};
@@ -236,7 +299,10 @@ void reshape (int w, int h) {
 
 void display () { setupCamera (); glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Erase the color and z buffers.  // Put your drawing code (glBegin, glVertex, glCallList, glDrawArray, etc) here
 
-    glSphere(0.0,0.0,0.0);
+    glSphereWithMat(cos(2*M_PI*currentTime/1000),sin(2*M_PI*currentTime/1000),0.0, 0.0,
+            1.0, 1.0, 1.0,
+            1.0, 1.0, 1.0,
+            1.0);
 
     glFlush (); // Ensures any previous OpenGL call has been executed
     glutSwapBuffers ();  // swap the render buffer and the displayed (screen) one
@@ -249,16 +315,19 @@ void keyboard (unsigned char keyPressed, int x, int y) {
 		glGetIntegerv (GL_POLYGON_MODE, mode);
 		glPolygonMode (GL_FRONT_AND_BACK, mode[1] ==  GL_FILL ? GL_LINE : GL_FILL);
         break;
-    case '1':
-        glEnable(GL_LIGHT0);
-        break;
-    case 'q':
-    case 27:
-        exit (0);
-        break;
-     default:
-        printUsage ();
-        break;
+  case '1':
+    glEnable(GL_LIGHT0);
+    break;
+  case 'a':
+    pause = !pause;
+    break;
+  case 'q':
+  case 27:
+      exit (0);
+      break;
+   default:
+      printUsage ();
+      break;
     }
     glutPostRedisplay ();
 }
@@ -275,6 +344,9 @@ void motion (int x, int y) {
 // This function is executed in an infinite loop. It updated the window title
 // (frame-per-second, model size) and ask for rendering
 void idle () {
+  if (!pause)
+    currentTime = glutGet ((GLenum)GLUT_ELAPSED_TIME);
+  glutPostRedisplay ();
 }
 
 

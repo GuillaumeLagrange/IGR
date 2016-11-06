@@ -6,6 +6,12 @@
 // All rights reserved.
 // ----------------------------------------------
 
+/* Tout a été traité jusqu'au début de la partie 3, la sphere tourne simplement, et
+ * appuyer sur 'a' permet de la faire s'arrêter ou repartir.
+ * Cliquer et glisser la souris fait bouger la caméra arbitrairement.
+ * Guillaume Lagrange
+ * */
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -55,8 +61,12 @@ void glSphereWithMat (float x, float y, float z, float r, float difR, float difG
 void genCheckerboard(unsigned int width, unsigned int height, unsigned char * image){
     unsigned int i, j;
     int ind = 0;
+    int size = 10;
+    bool oddh, oddw;
     for (i=0; i< width; i++) for (j=0;j<height;j++){
-        if (((i+j)/10)%2){
+        oddh = (j/size)%2 == 1;
+        oddw = (i/size)%2 == 1;
+        if (oddh == oddw){
           image[ind++] = 255;
           image[ind++] = 0;
           image[ind++] = 0;
@@ -194,29 +204,32 @@ void init () {
           *d++ = i4;
           *d++ = i2;
 
-          //Point i1
-          *t++ = j*P;
-          *t++ = i*T;
-          //Point i4
-          *t++ = (j+1)*P;
-          *t++ = i*T;
-          //Point i2
-          *t++ = j*P;
-          *t++ = (i+1)*T;
+          //Point 1
+          *t++ = phi0;
+          *t++ = th0;
+          //Point 2
+          *t++ = phi0;
+          *t++ = th1;
+          //Point 3
+          *t++ = phi1;
+          *t++ = th1;
+          //Point 4
+          *t++ = phi1;
+          *t++ = th0;
 
           *d++ = i2;
           *d++ = i4;
           *d++ = i3;
 
           //Point i2
-          *t++ = j*P;
-          *t++ = (i+1)*T;
-          //Point i4
-          *t++ = (j+1)*P;
-          *t++ = i*T;
-          //Point i3
-          *t++ = (j+1)*P;
-          *t++ = (i+1)*T;
+//          *t++ = j*P;
+//          *t++ = (i+1)*T;
+//          //Point i4
+//          *t++ = (j+1)*P;
+//          *t++ = i*T;
+//          //Point i3
+//          *t++ = (j+1)*P;
+//          *t++ = (i+1)*T;
   }
 
   glEnableClientState(GL_VERTEX_ARRAY);
@@ -230,8 +243,8 @@ void init () {
   glTexCoordPointer(2, GL_FLOAT, 2*sizeof(float), &sphereTexcoordArray[0]);
 
   // Texture checker board
-  int width=150;
-  int height=150;
+  int width=40;
+  int height=40;
   unsigned char image[3*width*height];
   genCheckerboard(width,height,image);
 
@@ -299,7 +312,7 @@ void reshape (int w, int h) {
 
 void display () { setupCamera (); glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Erase the color and z buffers.  // Put your drawing code (glBegin, glVertex, glCallList, glDrawArray, etc) here
 
-    glSphereWithMat(cos(2*M_PI*currentTime/1000),sin(2*M_PI*currentTime/1000),0.0, 0.0,
+    glSphereWithMat(cos(2*M_PI*currentTime/5000),sin(2*M_PI*currentTime/5000),0.0, 0.0,
             1.0, 1.0, 1.0,
             1.0, 1.0, 1.0,
             1.0);

@@ -5,3 +5,14 @@ main
 Release.key
 *.user
 *.pdf
+
+## Android studio projects
+*.iml
+.gradle
+local.properties
+workspace.xml
+libraries
+.DS_Store
+build
+captures
+.externalNativeBuild

@@ -1,0 +1,21 @@
+Exercice 1:
+L'attribut transform permet d'effectuer des transformations comme la translation
+appliquées au groupe.
+L'attribut viewbox permet de modifier le systeme de coordonnées :
+Il prend 4 attributs : xmin, ymin, width et height
+Les coordonnées a l'intérieur du bloc vont de xmin à width, et de ymin à height,
+ainsi le systeme de cordonnées est arbitrairement modifié, et la transofrmation en
+valeurs qui correspondent à des pixels se fait automatiquement.
+
+Exercice2:
+Avec la fonction alert, une fenetre popup apparait avec le texte mis en argument lorsque
+l'on clique sur les rectangles.
+onclick : la fonction se lance en cliquant sur l'élément. (appuyer et relacher sur 
+l'élément)
+onmouseover : la fonction se lance quand la souris passe sur l'élément.
+onmousedown : simplement appuyer sur l'élément (clic)
+onouseup : simplement relacher le clic sur l'élément.
+En quelques sortes : onclick = onmousedown + onmouseup.
+
+Exercice3&4:
+Je ne comprends pas vraiment ce qui est demandé.

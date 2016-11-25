@@ -1,12 +1,12 @@
 // --------------------------------------------------------------------------
 // Copyright(C) 2009-2016
 // Tamy Boubekeur
-// 
-// Permission granted to use this code only for teaching projects and 
+//
+// Permission granted to use this code only for teaching projects and
 // private practice.
 //
-// Do not distribute this code outside the teaching assignements.                                                                           
-// All rights reserved.                                                       
+// Do not distribute this code outside the teaching assignements.
+// All rights reserved.
 // --------------------------------------------------------------------------
 
 #include <GL/glew.h>
@@ -30,7 +30,7 @@ using namespace std;
 
 static const unsigned int DEFAULT_SCREENWIDTH = 1024;
 static const unsigned int DEFAULT_SCREENHEIGHT = 768;
-static const string DEFAULT_MESH_FILE ("models/man.off");
+static const string DEFAULT_MESH_FILE ("models/killeroo.off");
 
 static const string appTitle ("Informatique Graphique & Realite Virtuelle - Travaux Pratiques - Algorithmes de Rendu");
 static const string myName ("your name");
@@ -46,18 +46,18 @@ static std::vector<Vec3f> colorResponses; // Cached per-vertex color response, u
 static std::vector<LightSource> lightSources;
 
 void printUsage () {
-	std::cerr << std::endl 
+	std::cerr << std::endl
 		 << appTitle << std::endl
          << "Author: " << myName << std::endl << std::endl
          << "Usage: ./main [<file.off>]" << std::endl
-         << "Commands:" << std::endl 
+         << "Commands:" << std::endl
          << "------------------" << std::endl
          << " ?: Print help" << std::endl
 		 << " w: Toggle wireframe mode" << std::endl
-         << " <drag>+<left button>: rotate model" << std::endl 
+         << " <drag>+<left button>: rotate model" << std::endl
          << " <drag>+<right button>: move model" << std::endl
          << " <drag>+<middle button>: zoom" << std::endl
-         << " q, <esc>: Quit" << std::endl << std::endl; 
+         << " q, <esc>: Quit" << std::endl << std::endl;
 }
 
 void init (const char * modelFilename) {
@@ -85,16 +85,31 @@ void init (const char * modelFilename) {
     }
 
     lightSources.push_back(LightSource(1,0,0));
+		lightSources.back().setColor(0.f,1.f,0.f);
+
+		lightSources.push_back(LightSource(-1,0,0));
+		lightSources.back().setColor(1.f,0.f,0.f);
+
+		lightSources.push_back(LightSource(0,-1,0.5));
+		lightSources.back().setColor(0.5,0.5,0.5);
 }
 
 // EXERCISE : the following color response shall be replaced with a proper reflectance evaluation/shadow test/etc.
 void updatePerVertexColorResponse () {
-    for (unsigned int i = 0; i < colorResponses.size (); i++)
-		Vec3f normal = mesh.normals()[i];
-		for (LightSource source : lightSources) {
-			Vec3f direction = mesh.positions()[i] - source.getPositions;
-			colorResponses[i] = Vec3f
-	    }
+		std::vector<Vec3f> newColor;
+		newColor.resize(colorResponses.size());
+  	for (unsigned int i = 0; i < colorResponses.size (); i++) {
+			/* Lambert BRDF */
+			Vec3f normal = mesh.normals()[i];
+			for (vector<LightSource>::iterator it = lightSources.begin(); it != lightSources.end(); it ++) {
+				Vec3f direction = normalize(mesh.positions()[i] - (*it).getPosition());
+				float response = dot(mesh.normals()[i], direction);
+				Vec3f color = (*it).getColor();
+				float attenuation = 1/((mesh.positions()[i] - (*it).getPosition()).squaredLength());
+				newColor[i] += attenuation * Vec3f(color[0]*response, color[1]*response, color[2]*response);
+	    	}
+			}
+		colorResponses = newColor;
 }
 
 void renderScene () {
@@ -111,10 +126,10 @@ void reshape(int w, int h) {
 
 void display () {
     glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    camera.apply (); 
+    camera.apply ();
     renderScene ();
     glFlush ();
-    glutSwapBuffers (); 
+    glutSwapBuffers ();
 }
 
 void key (unsigned char keyPressed, int x, int y) {
@@ -126,7 +141,7 @@ void key (unsigned char keyPressed, int x, int y) {
         } else {
             glutFullScreen ();
             fullScreen = true;
-        }      
+        }
         break;
     case 'q':
     case 27:
@@ -167,7 +182,7 @@ void idle () {
         glutSetWindowTitle (title.c_str ());
         lastTime = currentTime;
     }
-    glutPostRedisplay (); 
+    glutPostRedisplay ();
 }
 
 int main (int argc, char ** argv) {
@@ -186,8 +201,7 @@ int main (int argc, char ** argv) {
     glutKeyboardFunc (key);
     glutMotionFunc (motion);
     glutMouseFunc (mouse);
-    printUsage ();  
+    printUsage ();
     glutMainLoop ();
     return 0;
 }
-
